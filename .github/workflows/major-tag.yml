@@ -29,7 +29,8 @@ jobs:
 
           // extract major version number
           const prefixRe = new RegExp(`^${prefix}`)
-          const major = `${version}`.replace(prefixRe, "").substring(0, version.indexOf("."))
+          const versionNumber = `${version}`.replace(prefixRe, "")
+          const major = versionNumber.substring(0, versionNumber.indexOf("."))
           console.log(major)
 
           // retrieve info about input tag to get sha
