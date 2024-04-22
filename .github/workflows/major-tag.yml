@@ -47,7 +47,7 @@ jobs:
           };
           let ref;
           try {
-            ref = await github.git.getRef(getRefParams);
+            ref = await github.rest.git.getRef(getRefParams);
             core.info(`Tag ${majorVersion} already exists`);
           } catch (error) {
             core.error(error)
