@@ -67,7 +67,7 @@ jobs:
             await github.rest.git.createRef(createRefParams)
           } else {
             core.info(`Updating major version ${majorVersion}...`)
-            await github.git.updateRef({
+            await github.rest.git.updateRef({
               ...getRefParams,
               sha,
               force: true,
