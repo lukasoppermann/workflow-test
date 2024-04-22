@@ -48,11 +48,12 @@ jobs:
           let ref;
           try {
             ref = await github.git.getRef(getRefParams);
-            core.info(`tag ${majorVersion} already exists`);
+            core.info(`Tag ${majorVersion} already exists`);
           } catch (error) {
-            core.info(`tag ${majorVersion} does not exist yet`);
+            core.error(error)
+            core.info(`Tag ${majorVersion} does not exist yet`);
           }
-          
+          console.log("Ref:", ref)
           // create major version tag
           if(!ref) {
             core.info(`Creating major version ${majorVersion}...`)
