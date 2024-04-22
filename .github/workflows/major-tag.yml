@@ -59,7 +59,7 @@ jobs:
             // create major version tag
             const createRefParams = {
               ...context.repo,
-              ref: `refs/tags/${prefix}${major}`,
+              ref: `refs/tags/${majorVersion}`,
               sha
             }
             console.log("createRefParams", createRefParams)
