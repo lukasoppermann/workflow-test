@@ -1,16 +1,9 @@
 name: Tag major version
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        required: true
-        type: string
-        default: 'v1.0.0'
-      prefix:
-        required: false
-        type: string
-        default: 'v'
+  push:
+    tags:        
+      - v[0-9]+.[0-9]+.[0-9]+
 
 jobs: 
   tag-version:
@@ -23,15 +16,17 @@ jobs:
       with:
         script: |
           // get inputs
-          const version = "${{ inputs.version }}"
-          const prefix = "${{ inputs.prefix }}"
-          console.log(version)
+          const version = "${{ github.ref_name }}"
+          const prefix = "v"
+          console.log("github", github)
+          console.log("context", context)
 
           // extract major version number
           const prefixRe = new RegExp(`^${prefix}`)
           const versionNumber = `${version}`.replace(prefixRe, "")
-          const major = versionNumber.substring(0, versionNumber.indexOf("."))
-          console.log(major)
+          const majorVersionNumber = versionNumber.substring(0, versionNumber.indexOf("."))
+          const majorVersion = `${prefix}${majorVersionNumber}`
+          console.log(majorVersion)
 
           // retrieve info about input tag to get sha
           core.info(`Retrieving info for tag ${version}...`)
@@ -44,15 +39,36 @@ jobs:
           const { data: {object: {sha} } } = await github.rest.git.getRef(tagParams)
           console.log(sha)
 
-          // try to create major version tag
-          core.info(`Creating or updating major version ${major}...`)
-          let majorTag
-          // create major version tag
-          const createRefParams = {
-            ...context.repo,
-            ref: `refs/tags/${prefix}${major}`,
-            sha
+          // retrieve major tag
+          const getRefParams = {
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: `tags/${majorVersion}`,
+          };
+          let ref;
+          try {
+            ref = await github.git.getRef(getRefParams);
+            core.info(`tag ${majorVersion} already exists`);
+          } catch (error) {
+            core.info(`tag ${majorVersion} does not exist yet`);
           }
-          console.log("createRefParams", createRefParams)
-          majorTag = await github.rest.git.createRef(createRefParams)
-          console.log(majorTag)
+          
+          // create major version tag
+          if(!ref) {
+            core.info(`Creating major version ${majorVersion}...`)
+            // create major version tag
+            const createRefParams = {
+              ...context.repo,
+              ref: `refs/tags/${prefix}${major}`,
+              sha
+            }
+            console.log("createRefParams", createRefParams)
+            await github.rest.git.createRef(createRefParams)
+          } else {
+            core.info(`Updating major version ${majorVersion}...`)
+            await github.git.updateRef({
+              ...getRefParams,
+              sha,
+              force: true,
+            });
+          }
